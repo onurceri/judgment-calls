@@ -1,0 +1,103 @@
+{
+  "faithfulness": {
+    "pool": {
+      "labels": {
+        "False": 1732,
+        "True": 943
+      },
+      "length_buckets": {
+        "0-700": 1068,
+        "1400-2100": 227,
+        "700-1400": 1342,
+        ">=2100": 38
+      },
+      "n": 2675
+    },
+    "sample": {
+      "labels": {
+        "False": 100,
+        "True": 100
+      },
+      "length_buckets": {
+        "0-700": 56,
+        "1400-2100": 55,
+        "700-1400": 55,
+        ">=2100": 34
+      },
+      "n": 200
+    },
+    "seed": 20261009,
+    "task": "faithfulness"
+  },
+  "pairwise": {
+    "comparisons": 1814,
+    "dropped_no_majority": 202,
+    "human_pair_agreement_with_ties": 0.6554054054054054,
+    "human_pair_agreement_without_ties": 0.8270967741935484,
+    "human_pairs_with_ties": 2368,
+    "human_pairs_without_ties": 1550,
+    "multi_vote_comparisons": 961,
+    "pool": {
+      "labels": {
+        "A": 671,
+        "B": 591,
+        "tie": 350
+      },
+      "length_buckets": {
+        "0-700": 958,
+        "1400-2100": 162,
+        "700-1400": 433,
+        ">=2100": 59
+      },
+      "n": 1612
+    },
+    "sample": {
+      "labels": {
+        "A": 50,
+        "B": 50,
+        "tie": 50
+      },
+      "length_buckets": {
+        "0-700": 42,
+        "1400-2100": 38,
+        "700-1400": 41,
+        ">=2100": 29
+      },
+      "n": 150
+    },
+    "seed": 20261009,
+    "task": "pairwise"
+  },
+  "summeval": {
+    "pool": {
+      "labels": {
+        "0": 6,
+        "1": 43,
+        "2": 178,
+        "3": 769,
+        "4": 604
+      },
+      "length_buckets": {
+        "0-700": 1042,
+        "700-1400": 558
+      },
+      "n": 1600
+    },
+    "sample": {
+      "labels": {
+        "0": 6,
+        "1": 43,
+        "2": 51,
+        "3": 50,
+        "4": 50
+      },
+      "length_buckets": {
+        "0-700": 108,
+        "700-1400": 92
+      },
+      "n": 200
+    },
+    "seed": 20261009,
+    "task": "summeval"
+  }
+}
