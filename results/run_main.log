@@ -1,0 +1,39 @@
+[20261009T174823Z-fd9c90] 200/4080 jobs | paid 200 cached 0 errors 0 | run $0.0276 | ledger $0.0651 of $0.85
+[20261009T174823Z-fd9c90] 400/4080 jobs | paid 400 cached 0 errors 0 | run $0.0514 | ledger $0.0889 of $0.85
+[20261009T174823Z-fd9c90] 600/4080 jobs | paid 600 cached 0 errors 0 | run $0.0814 | ledger $0.1189 of $0.85
+[20261009T174823Z-fd9c90] 800/4080 jobs | paid 800 cached 0 errors 0 | run $0.1045 | ledger $0.1421 of $0.85
+[20261009T174823Z-fd9c90] 1000/4080 jobs | paid 1000 cached 0 errors 0 | run $0.1292 | ledger $0.1667 of $0.85
+[20261009T174823Z-fd9c90] 1200/4080 jobs | paid 1200 cached 0 errors 0 | run $0.1556 | ledger $0.1931 of $0.85
+[20261009T174823Z-fd9c90] 1400/4080 jobs | paid 1400 cached 0 errors 0 | run $0.1836 | ledger $0.2211 of $0.85
+[20261009T174823Z-fd9c90] 1600/4080 jobs | paid 1600 cached 0 errors 0 | run $0.2092 | ledger $0.2467 of $0.85
+[20261009T174823Z-fd9c90] 1800/4080 jobs | paid 1800 cached 0 errors 0 | run $0.2343 | ledger $0.2718 of $0.85
+[20261009T174823Z-fd9c90] 2000/4080 jobs | paid 2000 cached 0 errors 0 | run $0.2604 | ledger $0.2980 of $0.85
+[20261009T174823Z-fd9c90] 2200/4080 jobs | paid 2200 cached 0 errors 0 | run $0.2849 | ledger $0.3224 of $0.85
+[20261009T174823Z-fd9c90] 2400/4080 jobs | paid 2400 cached 0 errors 0 | run $0.3090 | ledger $0.3465 of $0.85
+[20261009T174823Z-fd9c90] 2600/4080 jobs | paid 2600 cached 0 errors 0 | run $0.3331 | ledger $0.3706 of $0.85
+[20261009T174823Z-fd9c90] 2800/4080 jobs | paid 2800 cached 0 errors 0 | run $0.3557 | ledger $0.3932 of $0.85
+[20261009T174823Z-fd9c90] 3000/4080 jobs | paid 3000 cached 0 errors 0 | run $0.3829 | ledger $0.4204 of $0.85
+[20261009T174823Z-fd9c90] 3200/4080 jobs | paid 3200 cached 0 errors 0 | run $0.4064 | ledger $0.4439 of $0.85
+[20261009T174823Z-fd9c90] 3400/4080 jobs | paid 3400 cached 0 errors 0 | run $0.4328 | ledger $0.4703 of $0.85
+[20261009T174823Z-fd9c90] 3600/4080 jobs | paid 3600 cached 0 errors 0 | run $0.4564 | ledger $0.4939 of $0.85
+[20261009T174823Z-fd9c90] 3800/4080 jobs | paid 3800 cached 0 errors 0 | run $0.4799 | ledger $0.5174 of $0.85
+[20261009T174823Z-fd9c90] 4000/4080 jobs | paid 4000 cached 0 errors 0 | run $0.5049 | ledger $0.5424 of $0.85
+[20261009T174823Z-fd9c90] 4080/4080 jobs | paid 4080 cached 0 errors 0 | run $0.5159 | ledger $0.5534 of $0.85
+{
+  "run_id": "20261009T174823Z-fd9c90",
+  "planned": 4200,
+  "already_done": 120,
+  "cached": 0,
+  "paid_calls": 4080,
+  "errors": 0,
+  "spent_usd": 0.515917,
+  "budget_stopped": false,
+  "by_judge_cost": {
+    "gpt-6-luna-decisions": 0.089375,
+    "jev-1.13": 0.04202,
+    "d1": 0.046188,
+    "clef": 0.046299,
+    "gpt-6-luna": 0.124466,
+    "claude-haiku-5.5": 0.16757
+  }
+}
