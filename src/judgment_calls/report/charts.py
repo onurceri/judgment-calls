@@ -12,7 +12,7 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 from matplotlib.axes import Axes
 from matplotlib.lines import Line2D
-from matplotlib.ticker import FuncFormatter
+from matplotlib.ticker import FixedLocator, FuncFormatter, NullFormatter
 
 from judgment_calls.report.analysis import PositionBias, ViewResult
 
@@ -97,8 +97,9 @@ def accuracy_vs_cost(
                 color=INK_2,
             )
         ax.set_xscale("log")
+        ax.xaxis.set_major_locator(FixedLocator([0.02, 0.03, 0.05, 0.1, 0.2, 0.3, 0.5, 1.0]))
         ax.xaxis.set_major_formatter(FuncFormatter(_usd))
-        ax.xaxis.set_minor_formatter(FuncFormatter(_usd))
+        ax.xaxis.set_minor_formatter(NullFormatter())
         ax.set_title(title, loc="left")
         ax.set_xlabel("USD per 1,000 judgments (log scale)")
         ax.set_ylabel(metric.replace("_", " "))
