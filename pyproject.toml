@@ -1,0 +1,71 @@
+[project]
+name = "judgment-calls"
+version = "0.1.0"
+description = "Can decision models replace generative LLM judges? A head-to-head benchmark on human-labeled judge tasks."
+readme = "README.md"
+license = "MIT"
+license-files = ["LICENSE"]
+authors = [{ name = "Onur Ceri", email = "20990869+onurceri@users.noreply.github.com" }]
+requires-python = ">=3.12"
+keywords = ["llm-as-a-judge", "evaluation", "benchmark", "calibration", "openrouter"]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
+dependencies = [
+    "httpx>=0.27",
+    "pydantic>=2.7",
+    "numpy>=1.26",
+    "scipy>=1.13",
+    "matplotlib>=3.8",
+    "pyarrow>=16",
+]
+
+[project.urls]
+Homepage = "https://github.com/onurceri/judgment-calls"
+
+[project.scripts]
+judgment-calls = "judgment_calls.cli:main"
+
+[dependency-groups]
+dev = [
+    "pytest>=8",
+    "pytest-asyncio>=0.23",
+    "ruff>=0.6",
+    "pyright>=1.1.380",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/judgment_calls"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP", "SIM", "RUF", "N", "PL", "PT"]
+ignore = [
+    "PLC0415",  # lazy imports keep the CLI fast
+    "N818",
+    "PLR0917",
+    "PLR0913", "PLR2004", "PLR0912", "PLR0915", "PLR0911", "RUF001", "RUF002", "RUF003"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = ["PLR2004", "S101"]
+
+[tool.pyright]
+include = ["src"]
+typeCheckingMode = "strict"
+pythonVersion = "3.12"
+reportMissingTypeStubs = false
+reportUnknownMemberType = false
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+asyncio_mode = "auto"

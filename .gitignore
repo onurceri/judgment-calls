@@ -1,0 +1,20 @@
+# secrets
+.env
+.env.*
+!.env.example
+
+# python
+__pycache__/
+*.py[cod]
+.venv/
+.pytest_cache/
+.ruff_cache/
+dist/
+build/
+*.egg-info/
+
+# data & caches (raw downloads are re-fetched by `judgment-calls prepare`)
+data/raw/
+.cache/
+
+.DS_Store
