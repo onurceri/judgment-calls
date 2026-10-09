@@ -1,0 +1,15 @@
+{
+ "model": "typesafe/jev-1.13-20260917",
+ "answers": {
+  "hallucination": {
+   "type": "noul",
+   "noul": 0.87
+  }
+ },
+ "usage": {
+  "input_tokens": 1622,
+  "output_tokens": 22,
+  "cost": 6.8124e-05
+ },
+ "provider": "TypeSafe"
+}

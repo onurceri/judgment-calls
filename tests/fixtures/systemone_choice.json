@@ -1,0 +1,21 @@
+{
+ "model": "cloudflare/clef",
+ "answers": {
+  "preference": {
+   "type": "choice",
+   "choice": "B",
+   "probabilities": {
+    "A": 0.0905,
+    "B": 0.7694,
+    "tie": 0.1401
+   },
+   "confidence": 0.6541
+  }
+ },
+ "usage": {
+  "input_tokens": 464,
+  "output_tokens": 0,
+  "cost": 1.9488e-05
+ },
+ "provider": "PrimeIntellect"
+}
