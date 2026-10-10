@@ -118,7 +118,11 @@ JUDGES: list[JudgeConfig] = [
         price_in_per_m=2.0,
         price_out_per_m=10.0,
         tier="reference",
-        notes="Stronger reference judge; not run (budget).",
+        # This endpoint rejects disabled reasoning; "minimal" produced 0 reasoning tokens in
+        # probes. The output cap leaves room for a little reasoning plus the JSON answer.
+        extra_body={"reasoning": {"effort": "minimal"}, "max_tokens": 400},
+        notes="Stronger reference judge (reasoning is mandatory; effort=minimal); "
+        "run on a fixed stratified subset only.",
     ),
 ]
 

@@ -239,8 +239,9 @@ class ChatJudge:
 
     def estimate_cost(self, body: dict[str, Any]) -> float:
         tokens_in = estimate_tokens(json.dumps(body["messages"])) + 300
+        max_out = int(body.get("max_tokens", MAX_OUTPUT_TOKENS))
         return (
-            tokens_in * self.config.price_in_per_m + MAX_OUTPUT_TOKENS * self.config.price_out_per_m
+            tokens_in * self.config.price_in_per_m + max_out * self.config.price_out_per_m
         ) / 1e6
 
     def parse(self, spec: TaskSpec, body: dict[str, Any]) -> ParsedResponse:

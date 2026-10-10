@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from pathlib import Path
+
 from judgment_calls.datasets.sampling import (
     allocate,
     approx_tokens,
@@ -77,3 +79,27 @@ def test_stratified_sample_is_deterministic_and_balanced() -> None:
 def test_holm() -> None:
     adj = holm([0.01, 0.04, 0.03])
     assert adj == [0.03, 0.06, 0.06]
+
+
+def test_reference_subset_roundtrip(tmp_path: Path) -> None:
+    from judgment_calls.datasets.prepare import write_reference_subset
+    from judgment_calls.datasets.store import write_items
+    from judgment_calls.runner import read_subset
+
+    items = [
+        Item(
+            task="faithfulness",
+            item_id=f"f{k:03d}",
+            state={"s": "x" * (50 * k)},
+            gold={"hallucination": k % 2 == 0},
+        )
+        for k in range(80)
+    ]
+    write_items(tmp_path / "faithfulness.jsonl", items)
+    out = write_reference_subset(tmp_path, tmp_path / "sub", {"faithfulness": 20}, seed=1)
+    assert out["faithfulness"]["labels"] == {"False": 10, "True": 10}
+    ids = read_subset(tmp_path / "sub" / "faithfulness.txt")
+    assert len(ids) == 20
+    again = write_reference_subset(tmp_path, tmp_path / "sub2", {"faithfulness": 20}, seed=1)
+    assert again == out
+    assert read_subset(tmp_path / "sub2" / "faithfulness.txt") == ids

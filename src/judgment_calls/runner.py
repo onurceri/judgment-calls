@@ -30,6 +30,12 @@ def hash_order(items: list[Item]) -> list[Item]:
     return sorted(items, key=lambda it: sha256_hex(it.item_id))
 
 
+def read_subset(path: Path) -> set[str]:
+    """Item ids, one per line ('#' starts a comment)."""
+    lines = (ln.split("#", 1)[0].strip() for ln in path.read_text().splitlines())
+    return {ln for ln in lines if ln}
+
+
 @dataclass
 class RunConfig:
     tasks: list[str]
@@ -45,6 +51,7 @@ class RunConfig:
     per_judge_concurrency: int = 6
     timeout_s: float = 120.0
     dry_run: bool = False
+    subset_dir: Path | None = None  # if set, only items listed in <subset_dir>/<task>.txt
 
 
 @dataclass
@@ -95,6 +102,9 @@ def plan_jobs(cfg: RunConfig) -> list[Job]:
     for task in cfg.tasks:
         tdef = get_task(task)
         items = hash_order(read_items(cfg.samples_dir / f"{task}.jsonl"))
+        if cfg.subset_dir is not None:
+            wanted = read_subset(cfg.subset_dir / f"{task}.txt")
+            items = [it for it in items if it.item_id in wanted]
         if cfg.limit is not None:
             items = items[: cfg.limit]
         repeat_ids = {

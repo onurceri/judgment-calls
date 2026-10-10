@@ -34,9 +34,11 @@ from judgment_calls.report.analysis import (
     views_for,
 )
 from judgment_calls.report.load import TaskResults, load_task
+from judgment_calls.report.reference import REFERENCE_ID, analyse_reference
 from judgment_calls.tasks import TASKS
 
 ORDER = {j.id: k for k, j in enumerate(JUDGES)}
+REFERENCE_TIER = {j.id for j in JUDGES if j.tier == "reference"}
 HEADLINE = {
     "faithfulness": "balanced_accuracy",
     "summeval": "mean_spearman",
@@ -100,6 +102,8 @@ def build_report(results_dir: Path, samples_dir: Path) -> Path:
     }
     for task, tr in trs.items():
         for v in _sort_views(views_for(tr)):
+            if v.judge_id in REFERENCE_TIER:
+                continue  # analysed separately on its fixed subset
             if task == "pairwise":
                 res, pb = analyse_pairwise(tr, v)
             else:
@@ -671,6 +675,86 @@ def build_report(results_dir: Path, samples_dir: Path) -> Path:
         + "\n"
     )
 
+    # reference judge on its fixed subset
+    ref_tasks = analyse_reference(trs, samples_dir / "reference_subset")
+    ref_json: list[dict[str, Any]] = []
+    if ref_tasks:
+        md.append(f"## Reference judge on a fixed subset ({REFERENCE_ID})\n")
+        md.append(
+            "A stronger, pricier generative judge, run only on a fixed stratified subset "
+            "(`data/samples/reference_subset/`, seed 20261010) because of budget. Every row below "
+            "is computed on exactly the same items. This endpoint does not allow reasoning to be "
+            "disabled, so it ran with `reasoning.effort = minimal` (0 reasoning tokens were "
+            "billed in a probe); the other generative judges ran with reasoning off. Δ = "
+            "reference − other, paired bootstrap, Holm-adjusted across the six comparisons of "
+            "each metric. **With n of 40–60 items the intervals are wide** (see the CI-width "
+            "column), so only large differences can be detected.\n"
+        )
+        for rt in ref_tasks:
+            md.append(
+                f"**{rt.task}**: {rt.n_done} of {rt.n_subset} subset items completed"
+                + (f" (labels {rt.labels})" if rt.labels else "")
+                + ".\n"
+            )
+            if not rt.results:
+                continue
+            keys = (
+                ["balanced_accuracy", "auroc"]
+                if rt.task == "faithfulness"
+                else ["mean_spearman", "mean_qwk"]
+            )
+            ref_rows: list[list[str]] = []
+            for jid, r in rt.results.items():
+                cells = [jid + (" (reference)" if jid == REFERENCE_ID else ""), str(r.n)]
+                cells += [r.metrics[k].fmt() for k in keys]
+                cells.append(_f(r.metrics[keys[0]].hi - r.metrics[keys[0]].lo, 2))
+                if r.calibration is not None:
+                    cells += [r.calibration.ece.fmt(), r.calibration.brier.fmt()]
+                ref_rows.append(cells)
+            header = ["judge", "n", *keys, f"CI width ({keys[0]})"]
+            if rt.task == "faithfulness":
+                header += ["ECE", "Brier"]
+            md.append(_table(header, ref_rows) + "\n")
+            cmp_rows: list[list[str]] = []
+            for c in rt.comparisons:
+                sig = "**yes**" if (c.p_holm is not None and c.p_holm < 0.05) else "no"
+                cmp_rows.append(
+                    [
+                        c.metric,
+                        c.b,
+                        str(c.n),
+                        f"{c.diff.diff:+.3f} [{c.diff.lo:+.3f}, {c.diff.hi:+.3f}]",
+                        _p(c.p_holm if c.p_holm is not None else float("nan")),
+                        sig,
+                    ]
+                )
+                ref_json.append(
+                    {
+                        "task": c.task,
+                        "metric": c.metric,
+                        "other": c.b,
+                        "n": c.n,
+                        "diff": c.diff.diff,
+                        "lo": c.diff.lo,
+                        "hi": c.diff.hi,
+                        "p_holm": c.p_holm,
+                    }
+                )
+            md.append(
+                _table(
+                    [
+                        "metric",
+                        "vs.",
+                        "n",
+                        "Δ reference − other [95% CI]",
+                        "p (Holm)",
+                        "significant",
+                    ],
+                    cmp_rows,
+                )
+                + "\n"
+            )
+
     report = results_dir / "REPORT.md"
     report.write_text("\n".join(md) + "\n")
 
@@ -699,6 +783,16 @@ def build_report(results_dir: Path, samples_dir: Path) -> Path:
         "position_bias": {v.label: pb.__dict__ for v, pb in pbias.items()},
         "cost": {j: c.__dict__ for j, c in cost_all.items()},
         "repeats": rep_json,
+        "reference_subset": {
+            "comparisons": ref_json,
+            "results": {
+                rt.task: {
+                    jid: {k: _est_json(e) for k, e in r.metrics.items()}
+                    for jid, r in rt.results.items()
+                }
+                for rt in ref_tasks
+            },
+        },
         "comparisons": [
             {
                 "task": c.task,

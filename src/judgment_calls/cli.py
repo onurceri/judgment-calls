@@ -43,6 +43,7 @@ def _cmd_run(args: argparse.Namespace) -> int:
         concurrency=args.concurrency,
         per_judge_concurrency=args.per_judge_concurrency,
         dry_run=args.dry_run,
+        subset_dir=Path(args.subset_dir) if args.subset_dir else None,
     )
     summary = asyncio.run(run(cfg))
     out = {
@@ -64,6 +65,15 @@ def _cmd_run(args: argparse.Namespace) -> int:
         }
     print(json.dumps(out, indent=2))
     return 1 if summary.budget_stopped else 0
+
+
+def _cmd_subset(args: argparse.Namespace) -> int:
+    from judgment_calls.datasets.prepare import write_reference_subset
+
+    sizes = {"faithfulness": args.faithfulness, "summeval": args.summeval}
+    out = write_reference_subset(Path(args.samples_dir), Path(args.out_dir), sizes, args.seed)
+    print(json.dumps(out, indent=2))
+    return 0
 
 
 def _cmd_report(args: argparse.Namespace) -> int:
@@ -138,7 +148,20 @@ def build_parser() -> argparse.ArgumentParser:
     pr.add_argument("--results-dir", default="results")
     pr.add_argument("--cache", default=".cache/responses.sqlite")
     pr.add_argument("--dry-run", action="store_true", help="estimate cost, call nothing")
+    pr.add_argument(
+        "--subset-dir",
+        default=None,
+        help="only run items listed in <dir>/<task>.txt (e.g. data/samples/reference_subset)",
+    )
     pr.set_defaults(fn=_cmd_run)
+
+    ps = sub.add_parser("subset", help="write a fixed stratified item subset (id lists)")
+    ps.add_argument("--faithfulness", type=int, default=60)
+    ps.add_argument("--summeval", type=int, default=40)
+    ps.add_argument("--seed", type=int, default=20261010)
+    ps.add_argument("--samples-dir", default="data/samples")
+    ps.add_argument("--out-dir", default="data/samples/reference_subset")
+    ps.set_defaults(fn=_cmd_subset)
 
     prep = sub.add_parser("report", help="compute metrics, write results/REPORT.md + charts")
     prep.add_argument("--results-dir", default="results")
