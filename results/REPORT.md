@@ -1,6 +1,6 @@
 # judgment-calls: results report
 
-Generated 2026-10-09 18:11 UTC by `judgment-calls report` from `results/raw/*.jsonl`. Total API spend recorded in the ledger: **$0.6203**. All intervals are 95% percentile-bootstrap CIs over items (2,000 resamples). Headline metrics use repeat 0 of every item.
+Generated 2026-10-10 08:06 UTC by `judgment-calls report` from `results/raw/*.jsonl`. Total API spend recorded in the ledger: **$1.1019**. All intervals are 95% percentile-bootstrap CIs over items (2,000 resamples). Headline metrics use repeat 0 of every item.
 
 ¹ = judge covered only part of the sample (the run hit the API key's credit limit); its numbers are on the items it did judge and are **not** directly comparable to full-sample judges except in the paired comparisons, which always use common items.
 
@@ -21,6 +21,7 @@ Generated 2026-10-09 18:11 UTC by `judgment-calls report` from `results/raw/*.js
 | claude-haiku-5.5 | 200/200 | 200/200 | 150/150 |
 | gpt-6-luna | 200/200 | 200/200 | 150/150 |
 | gpt-4o-mini | 5/200 | 5/200 | 5/150 |
+| claude-sonnet-5.5 | 52/200 | 40/200 | 0/150 |
 
 - faithfulness: smoke-test only, excluded from analysis: solar-decide-flash (n=5), tev1-4b (n=5), kev-4b (n=5), gpt-4o-mini (logprob) (n=5), gpt-4o-mini (n=5)
 - summeval: smoke-test only, excluded from analysis: clef-flash (n=5), solar-decide-flash (n=5), pplx-decider-v1.1 (n=5), mercury-decide (n=5), tev1-4b (n=5), kev-4b (n=5), gpt-4o-mini (logprob) (n=5), gpt-4o-mini (n=5)
@@ -236,6 +237,7 @@ Cost is the sum of `usage.cost` reported by OpenRouter per call. A *judgment* is
 | claude-haiku-5.5 | 780 | $0.1960 | $0.251 | $0.238 | $0.268 | $0.249 | 2325 | 1.51s | 1.98s |
 | gpt-6-luna | 780 | $0.1321 | $0.169 | $0.167 | $0.180 | $0.164 | 1394 | 1.37s | 2.19s |
 | gpt-4o-mini | 20 | $0.0051 | $0.257 | $0.236 | $0.236 | $0.277 | 1621 | 1.70s | 2.14s |
+| claude-sonnet-5.5 | 92 | $0.4750 | $5.163 | $5.075 | $5.277 | — | 2301 | 1.72s | 2.39s |
 
 ## Paired comparisons: decision model vs. generative judge
 
@@ -315,4 +317,74 @@ Difference = decision − generative on the items both judged, with a paired boo
 | pairwise | accuracy | gpt-6-luna-decisions | gpt-6-luna | 150 | +0.013 [-0.027, +0.053] | 0.572 | 1.000 | no | 8/5, p=0.581 |
 | pairwise | accuracy | d1 | claude-haiku-5.5 | 150 | -0.023 [-0.060, +0.013] | 0.268 | 1.000 | no | 7/8, p=1.000 |
 | pairwise | accuracy | d1 | gpt-6-luna | 150 | +0.037 [-0.020, +0.097] | 0.248 | 1.000 | no | 15/8, p=0.210 |
+
+## Reference judge on a fixed subset (claude-sonnet-5.5)
+
+A stronger, pricier generative judge, run only on a fixed stratified subset (`data/samples/reference_subset/`, seed 20261010) because of budget. Every row below is computed on exactly the same items. This endpoint does not allow reasoning to be disabled, so it ran with `reasoning.effort = minimal` (0 reasoning tokens were billed in a probe); the other generative judges ran with reasoning off. Δ = reference − other, paired bootstrap, Holm-adjusted across the six comparisons of each metric. **With n of 40–60 items the intervals are wide** (see the CI-width column), so only large differences can be detected.
+
+**faithfulness**: 52 of 60 subset items completed (labels {'True': 25, 'False': 27}).
+
+| judge | n | balanced_accuracy | auroc | CI width (balanced_accuracy) | ECE | Brier |
+|---|---|---|---|---|---|---|
+| claude-sonnet-5.5 (reference) | 52 | 0.648 [0.562, 0.738] | 0.881 [0.784, 0.951] | 0.18 | 0.221 [0.133, 0.336] | 0.230 [0.155, 0.312] |
+| jev-1.13 | 52 | 0.827 [0.719, 0.923] | 0.845 [0.726, 0.945] | 0.20 | 0.148 [0.122, 0.267] | 0.160 [0.109, 0.217] |
+| clef | 52 | 0.761 [0.654, 0.859] | 0.899 [0.813, 0.969] | 0.21 | 0.116 [0.104, 0.253] | 0.161 [0.111, 0.214] |
+| gpt-6-luna-decisions | 52 | 0.721 [0.615, 0.820] | 0.801 [0.673, 0.905] | 0.20 | 0.240 [0.141, 0.352] | 0.244 [0.156, 0.338] |
+| d1 | 52 | 0.666 [0.547, 0.783] | 0.803 [0.677, 0.908] | 0.24 | 0.201 [0.109, 0.305] | 0.219 [0.149, 0.295] |
+| claude-haiku-5.5 | 52 | 0.587 [0.464, 0.701] | 0.640 [0.484, 0.775] | 0.24 | 0.332 [0.217, 0.456] | 0.338 [0.237, 0.441] |
+| gpt-6-luna | 52 | 0.738 [0.622, 0.852] | 0.786 [0.661, 0.897] | 0.23 | 0.257 [0.148, 0.388] | 0.261 [0.149, 0.390] |
+
+| metric | vs. | n | Δ reference − other [95% CI] | p (Holm) | significant |
+|---|---|---|---|---|---|
+| balanced_accuracy | jev-1.13 | 52 | -0.179 [-0.303, -0.050] | 0.060 | no |
+| auroc | jev-1.13 | 52 | +0.036 [-0.051, +0.127] | 0.950 | no |
+| brier (lower=better) | jev-1.13 | 52 | +0.070 [-0.007, +0.151] | 0.375 | no |
+| ece (lower=better) | jev-1.13 | 52 | +0.073 [-0.075, +0.150] | 1.000 | no |
+| balanced_accuracy | clef | 52 | -0.113 [-0.249, +0.019] | 0.525 | no |
+| auroc | clef | 52 | -0.019 [-0.114, +0.071] | 0.950 | no |
+| brier (lower=better) | clef | 52 | +0.069 [-0.039, +0.174] | 0.728 | no |
+| ece (lower=better) | clef | 52 | +0.105 [-0.084, +0.187] | 1.000 | no |
+| balanced_accuracy | gpt-6-luna-decisions | 52 | -0.073 [-0.200, +0.059] | 0.873 | no |
+| auroc | gpt-6-luna-decisions | 52 | +0.079 [-0.045, +0.210] | 0.576 | no |
+| brier (lower=better) | gpt-6-luna-decisions | 52 | -0.014 [-0.088, +0.057] | 1.000 | no |
+| ece (lower=better) | gpt-6-luna-decisions | 52 | -0.018 [-0.127, +0.091] | 1.000 | no |
+| balanced_accuracy | d1 | 52 | -0.018 [-0.160, +0.125] | 0.873 | no |
+| auroc | d1 | 52 | +0.078 [-0.025, +0.190] | 0.576 | no |
+| brier (lower=better) | d1 | 52 | +0.011 [-0.109, +0.128] | 1.000 | no |
+| ece (lower=better) | d1 | 52 | +0.020 [-0.125, +0.180] | 1.000 | no |
+| balanced_accuracy | claude-haiku-5.5 | 52 | +0.061 [-0.065, +0.199] | 0.873 | no |
+| auroc | claude-haiku-5.5 | 52 | +0.241 [+0.090, +0.400] | 0.012 | **yes** |
+| brier (lower=better) | claude-haiku-5.5 | 52 | -0.108 [-0.199, -0.020] | 0.114 | no |
+| ece (lower=better) | claude-haiku-5.5 | 52 | -0.111 [-0.221, +0.017] | 0.510 | no |
+| balanced_accuracy | gpt-6-luna | 52 | -0.090 [-0.212, +0.039] | 0.720 | no |
+| auroc | gpt-6-luna | 52 | +0.095 [-0.011, +0.205] | 0.435 | no |
+| brier (lower=better) | gpt-6-luna | 52 | -0.031 [-0.133, +0.069] | 1.000 | no |
+| ece (lower=better) | gpt-6-luna | 52 | -0.036 [-0.151, +0.091] | 1.000 | no |
+
+**summeval**: 40 of 40 subset items completed.
+
+| judge | n | mean_spearman | mean_qwk | CI width (mean_spearman) |
+|---|---|---|---|---|
+| claude-sonnet-5.5 (reference) | 40 | 0.710 [0.574, 0.803] | 0.654 [0.510, 0.751] | 0.23 |
+| jev-1.13 | 40 | 0.757 [0.644, 0.831] | 0.624 [0.510, 0.703] | 0.19 |
+| clef | 40 | 0.714 [0.586, 0.803] | 0.512 [0.405, 0.600] | 0.22 |
+| gpt-6-luna-decisions | 40 | 0.715 [0.587, 0.799] | 0.588 [0.456, 0.694] | 0.21 |
+| d1 | 40 | 0.762 [0.646, 0.834] | 0.392 [0.286, 0.488] | 0.19 |
+| claude-haiku-5.5 | 40 | 0.735 [0.618, 0.817] | 0.585 [0.464, 0.684] | 0.20 |
+| gpt-6-luna | 40 | 0.718 [0.596, 0.805] | 0.643 [0.510, 0.739] | 0.21 |
+
+| metric | vs. | n | Δ reference − other [95% CI] | p (Holm) | significant |
+|---|---|---|---|---|---|
+| mean_spearman | jev-1.13 | 40 | -0.048 [-0.124, +0.028] | 1.000 | no |
+| mean_qwk | jev-1.13 | 40 | +0.030 [-0.039, +0.094] | 0.720 | no |
+| mean_spearman | clef | 40 | -0.005 [-0.109, +0.099] | 1.000 | no |
+| mean_qwk | clef | 40 | +0.141 [+0.037, +0.229] | 0.060 | no |
+| mean_spearman | gpt-6-luna-decisions | 40 | -0.005 [-0.085, +0.077] | 1.000 | no |
+| mean_qwk | gpt-6-luna-decisions | 40 | +0.065 [-0.037, +0.150] | 0.720 | no |
+| mean_spearman | d1 | 40 | -0.052 [-0.153, +0.039] | 1.000 | no |
+| mean_qwk | d1 | 40 | +0.261 [+0.144, +0.361] | <0.001 | **yes** |
+| mean_spearman | claude-haiku-5.5 | 40 | -0.026 [-0.117, +0.055] | 1.000 | no |
+| mean_qwk | claude-haiku-5.5 | 40 | +0.068 [-0.028, +0.159] | 0.720 | no |
+| mean_spearman | gpt-6-luna | 40 | -0.008 [-0.099, +0.074] | 1.000 | no |
+| mean_qwk | gpt-6-luna | 40 | +0.011 [-0.063, +0.075] | 0.785 | no |
 

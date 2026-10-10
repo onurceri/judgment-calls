@@ -1,0 +1,15 @@
+[budget] cap $1.1203 would be exceeded (spent $1.0905, reserved $0.0237, next ~$0.00785) -- stopping
+[20261010T080115Z-c7a53d] 100/100 jobs | paid 92 cached 0 errors 0 | run $0.4750 | ledger $1.1019 of $1.12
+{
+  "run_id": "20261010T080115Z-c7a53d",
+  "planned": 100,
+  "already_done": 0,
+  "cached": 0,
+  "paid_calls": 92,
+  "errors": 0,
+  "spent_usd": 0.475,
+  "budget_stopped": true,
+  "by_judge_cost": {
+    "claude-sonnet-5.5": 0.475
+  }
+}
