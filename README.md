@@ -19,9 +19,13 @@ and GPT-6 Luna 0.75 [0.70, 0.80] (not significant on accuracy, but significant o
 ECE). On rubric scoring every decision model significantly beat Haiku, and none could be told
 apart from GPT-6 Luna. On **pairwise preference with ties, nothing wins**: every judge in both
 families lands at 52–58% three-way accuracy, and no pairwise difference is significant. So the
-answer is **yes for grounding checks and rubric scores, not proven for pairwise preference**,
-and only against small, non-reasoning generative judges. A stronger reference judge was not
-run (see [Limitations](#limitations)).
+answer is **yes for grounding checks and rubric scores, not proven for pairwise preference**.
+A stronger, ~20× pricier reference judge (Claude Sonnet 5.5) ran on a fixed 52-item
+faithfulness / 40-item SummEval subset. It **did not significantly beat any decision model**
+there. It significantly beat only Haiku (faithfulness AUROC) and d1 (SummEval QWK). Its point
+estimates were not higher than jev-1.13's on balanced accuracy or Spearman. With n = 40–60 the
+CIs are wide (about ±0.08–0.15), so this rules out large advantages for the expensive judge, not small
+ones (see [Reference judge](#reference-judge-subset)).
 
 ## Prior work: where this fits
 
@@ -91,6 +95,37 @@ ceiling for pairwise: human–human agreement is 66% with ties and 83% without.
 
 ![quality vs cost](results/charts/accuracy_vs_cost.png)
 
+### Reference judge (subset)
+
+`anthropic/claude-sonnet-5.5` ($2/M in, $10/M out) was run as a stronger generative reference on
+a fixed, stratified subset. The item ids are in
+[`data/samples/reference_subset/`](data/samples/reference_subset), seed 20261010. Planned:
+60 faithfulness items (30/30) and 40 SummEval items spread over the human-score range. The
+$0.50 cap stopped the run after **52 faithfulness items (25 hallucinated / 27 not) and all 40
+SummEval items**. All rows below use exactly those items, so they differ from the full-sample
+table above. This endpoint rejects disabled reasoning, so Sonnet ran with
+`reasoning.effort = minimal` (0 reasoning tokens billed in a probe). The other generative judges
+ran with reasoning off. Its AUROC uses the verbalized confidence.
+
+| judge | faithfulness bal. acc. (n=52) | faithfulness AUROC | SummEval mean ρ (n=40) | SummEval mean QWK |
+|---|---|---|---|---|
+| claude-sonnet-5.5 (reference) | 0.648 [0.562, 0.738] | 0.881 [0.784, 0.951] | 0.710 [0.574, 0.803] | 0.654 [0.510, 0.751] |
+| jev-1.13 | 0.827 [0.719, 0.923] | 0.845 [0.726, 0.945] | 0.757 [0.644, 0.831] | 0.624 [0.510, 0.703] |
+| clef | 0.761 [0.654, 0.859] | 0.899 [0.813, 0.969] | 0.714 [0.586, 0.803] | 0.512 [0.405, 0.600] |
+| gpt-6-luna-decisions | 0.721 [0.615, 0.820] | 0.801 [0.673, 0.905] | 0.715 [0.587, 0.799] | 0.588 [0.456, 0.694] |
+| d1 | 0.666 [0.547, 0.783] | 0.803 [0.677, 0.908] | 0.762 [0.646, 0.834] | 0.392 [0.286, 0.488] |
+| claude-haiku-5.5 | 0.587 [0.464, 0.701] | 0.640 [0.484, 0.775] | 0.735 [0.618, 0.817] | 0.585 [0.464, 0.684] |
+| gpt-6-luna | 0.738 [0.622, 0.852] | 0.786 [0.661, 0.897] | 0.718 [0.596, 0.805] | 0.643 [0.510, 0.739] |
+
+Of the 36 Holm-corrected paired tests (Sonnet vs. each of the six judges, on balanced accuracy,
+AUROC, Brier and ECE for faithfulness, and on Spearman and QWK for SummEval), only two are
+significant: Sonnet beats Haiku on AUROC (+0.24 [+0.09, +0.40]) and d1 on QWK
+(+0.26 [+0.14, +0.36]). Sonnet's lower balanced accuracy has a clear cause: it flags 85% of
+responses as hallucinated (recall 100%, precision 57%). Its ranking is good (AUROC 0.88), but its
+yes/no threshold is far too strict for this label definition. The jev-1.13 − Sonnet balanced
+accuracy gap (+0.18 [+0.05, +0.30]) does not survive Holm (p = 0.06). Sonnet cost **$5.16 per
+1,000 judgments**, about 80× jev-1.13. Full tables are in `results/REPORT.md`.
+
 ### Findings (stated as carefully as the CIs allow)
 
 1. **Faithfulness: decision models rank better and are better calibrated. Accuracy gains are
@@ -159,8 +194,11 @@ temperature 0.
 
 - **Budget and credits.** The hard cap was $8, but the API key had a **$1 credit limit** and was
   also being used by another process during the run. Spend recorded by this harness was
-  **$0.62** (plus about $0.001 of untracked manual probes). Because of that:
-  - the **stronger reference judge** (e.g. Claude Sonnet 5.5) was **not run**;
+  **$0.62** for the main runs (plus about $0.001 of untracked manual probes), and **$0.48** for
+  the reference-judge follow-up after the key's limit was raised. Because of that:
+  - the **stronger reference judge** (Claude Sonnet 5.5) ran only on a 52 + 40 item subset, with
+    a separate $0.50 cap. Its CIs are about 1.5–2× as wide as the main results, and it ran with
+    minimal reasoning while the other generative judges ran with none;
   - **gpt-4o-mini (logprobs)** ran only on the 5-item smoke test, so the planned *verbalized vs.
     logprob vs. decision-probability* calibration comparison is **not reported**. The extraction
     code is implemented and tested with recorded fixtures;
@@ -168,8 +206,9 @@ temperature 0.
     are reported for them. clef-flash, pplx-decider and mercury-decide ran on faithfulness only
     and stopped at about 118/200 items when the key hit its limit;
   - pairwise was reduced from 200 to 150 items, and repeats were cut to 10 items per task.
-- **Generative judges were small, non-reasoning models with no chain-of-thought.** A reasoning
-  or larger judge could change the conclusion, especially on pairwise.
+- **The main generative judges were small, non-reasoning models with no chain-of-thought.** The
+  larger reference judge was checked only on a subset and not on pairwise. A judge with full
+  reasoning could still change the conclusion, especially on pairwise.
 - **Contamination:** all datasets are public, and any model may have seen them (see
   DATASETS.md). No fresh author-written set was built.
 - **Tokens are approximate** (characters ÷ 4) for the length buckets. Billed tokens are logged
@@ -189,6 +228,9 @@ uv run judgment-calls prepare            # downloads datasets, rebuilds data/sam
 uv run judgment-calls run --limit 5 --judges all-decision all-generative --budget 0.5   # smoke test
 uv run judgment-calls run --judges primary --budget 8                                  # main run
 uv run judgment-calls run --judges primary --repeats 3 --repeat-limit 10 --budget 8    # consistency
+uv run judgment-calls subset             # fixed reference subset id lists (already committed)
+uv run judgment-calls run --tasks faithfulness summeval --judges claude-sonnet-5.5 \
+    --subset-dir data/samples/reference_subset --budget 8                             # reference judge
 uv run judgment-calls report             # results/REPORT.md, results/summary.json, results/charts/*.png
 ```
 
